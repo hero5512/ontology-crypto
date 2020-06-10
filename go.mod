@@ -6,6 +6,8 @@ require (
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/ethereum/go-ethereum v1.9.13
 	github.com/itchyny/base58-go v0.1.0
+	github.com/prometheus/common v0.0.0-20181113130724-41aa239b4cce
+	github.com/sirupsen/logrus v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
 )
 
