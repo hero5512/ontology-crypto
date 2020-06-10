@@ -2,9 +2,9 @@ package ecies
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/ontio/ontology-crypto/sm2"
 	"reflect"
 	"testing"
 )
@@ -22,7 +22,7 @@ var testcase_Dec = EciesData{
 }
 
 func TestEcies(t *testing.T) {
-	p256 := sm2.SM2P256V1()
+	p256 := elliptic.P256()
 	priKey, _ := ecdsa.GenerateKey(p256, rand.Reader)
 	pubKey := &priKey.PublicKey
 	msg, _ := hex.DecodeString(testcase_Dec.message)
