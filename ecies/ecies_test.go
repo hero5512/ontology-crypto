@@ -5,8 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"github.com/ontio/ontology-crypto/sm2"
-	"github.com/prometheus/common/log"
-	"io"
 	"reflect"
 	"testing"
 )
@@ -28,16 +26,10 @@ func TestEcies(t *testing.T) {
 	priKey, _ := ecdsa.GenerateKey(p256, rand.Reader)
 	pubKey := &priKey.PublicKey
 	msg, _ := hex.DecodeString(testcase_Dec.message)
-	_, _ = io.ReadFull(rand.Reader, msg[:])
 	c, _ := EciesEncrypt(pubKey, msg)
 
 	m, _ := EciesDecrypt(priKey, c)
 	if reflect.DeepEqual(msg, m) != true {
 		t.Error("ecies enc error!")
 	}
-	cstring := hex.EncodeToString(c)
-	log.Info(hex.EncodeToString(priKey.D.Bytes()))
-	log.Info(hex.EncodeToString(priKey.PublicKey.X.Bytes()))
-	log.Info(hex.EncodeToString(priKey.PublicKey.Y.Bytes()))
-	log.Info(cstring)
 }
