@@ -56,6 +56,7 @@ type SM2Signature struct {
 // the last argument @opt:
 // - SM2 signature needs the user ID (string). If it is an empty string, the
 //   default ID ("1234567812345678") would be used.
+// TODO
 func Sign(scheme SignatureScheme, pri crypto.PrivateKey, msg []byte, opt interface{}) (sig *Signature, err error) {
 	var res Signature
 	res.Scheme = scheme

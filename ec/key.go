@@ -33,11 +33,12 @@ const (
 	nocompress    = 4
 )
 
-type ECAlgorithm byte
+type  ECAlgorithm byte
 
 const (
 	ECDSA ECAlgorithm = iota
 	SM2
+	AGGSIGN
 )
 
 type PrivateKey struct {
