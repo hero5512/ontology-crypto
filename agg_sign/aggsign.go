@@ -71,7 +71,7 @@ func KeyAggregation(myPk *ecdsa.PublicKey, otherPk *ecdsa.PublicKey) (*KeyAgg, e
 }
 
 func KeyAggregationN(pks []*ecdsa.PublicKey, partyIndex int) (*KeyAgg, error) {
-	if pks == nil || len(pks) == 0 || partyIndex <= 0 {
+	if pks == nil || len(pks) == 0 || partyIndex < 0 {
 		err := errors.New("illegal parameter")
 		return nil, err
 	}
