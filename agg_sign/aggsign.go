@@ -71,7 +71,10 @@ func KeyAggregation(myPk *ecdsa.PublicKey, otherPk *ecdsa.PublicKey) (*KeyAgg, e
 }
 
 func KeyAggregationN(pks []*ecdsa.PublicKey, partyIndex int) (*KeyAgg, error) {
-
+	if pks == nil || len(pks) == 0 || partyIndex <= 0 {
+		err := errors.New("illegal parameter")
+		return nil, err
+	}
 	if partyIndex >= len(pks) {
 		err := errors.New("pks's length should more than partyIndex")
 		return nil, err
@@ -175,6 +178,10 @@ func CreateFromPrivateKey(x1 ec.PrivateKey, message []byte) (*EphemeralKey, erro
 }
 
 func TestCom(pubKey *ecdsa.PublicKey, blindFactor *big.Int, comm *big.Int) (bool, error) {
+	if pubKey == nil || blindFactor == nil || comm == nil {
+		err := errors.New("illegal parameter")
+		return false, err
+	}
 	compressPubKey := ec.EncodePublicKey(pubKey, true)
 	computedComm, err := primitives.CreateCommitmentWithRandom(new(big.Int).SetBytes(compressPubKey), blindFactor)
 	if err != nil {
@@ -198,13 +205,17 @@ func AddEphemeralPubKeys(pubKey1 *ecdsa.PublicKey, pubKey2 *ecdsa.PublicKey) *ec
 	return pubKeyRes
 }
 
-func Hash0(rHat *ecdsa.PublicKey, apk *ecdsa.PublicKey, message []byte, muSigBit bool) *big.Int {
+func Hash0(rHat *ecdsa.PublicKey, apk *ecdsa.PublicKey, message []byte, muSigBit bool) (*big.Int, error) {
+	if rHat == nil || apk == nil {
+		err := errors.New("illegal parameter")
+		return nil, err
+	}
 	compressApk := new(big.Int).SetBytes(ec.EncodePublicKey(apk, true))
 	bigMessage := new(big.Int).SetBytes(message)
 	if muSigBit {
-		return CreateHash([]*big.Int{big0, rHat.X, compressApk, bigMessage})
+		return CreateHash([]*big.Int{big0, rHat.X, compressApk, bigMessage}), nil
 	}
-	return CreateHash([]*big.Int{rHat.X, compressApk, bigMessage})
+	return CreateHash([]*big.Int{rHat.X, compressApk, bigMessage}), nil
 }
 
 func Sign(r *EphemeralKey, c *big.Int, x ecdsa.PrivateKey, a *big.Int) *big.Int {
@@ -221,7 +232,7 @@ func Sign(r *EphemeralKey, c *big.Int, x ecdsa.PrivateKey, a *big.Int) *big.Int 
 }
 
 func AddSignatureParts(s1 *big.Int, s2 *big.Int, rTag *ecdsa.PublicKey) (*big.Int, *big.Int) {
-	if big0.Cmp(s1) == 0 {
+	if big0.Cmp(s2) == 0 {
 		return rTag.X, s1
 	}
 	curve := rTag.Params()
@@ -231,9 +242,10 @@ func AddSignatureParts(s1 *big.Int, s2 *big.Int, rTag *ecdsa.PublicKey) (*big.In
 	return rTag.X, s1PlusS2
 }
 
-// 	party1H0 := Hash0(party1RTag, keyAgg1.APK, message, isMuSig)
-//  Verify(s, r, keyAgg1.APK, message, isMuSig)
 func Verify(signature *big.Int, rX *big.Int, apk *ecdsa.PublicKey, message []byte, musign bool) bool {
+	if signature == nil || rX == nil || apk == nil {
+		return false
+	}
 	c := new(big.Int)
 	curve := apk.Curve
 	if musign {
@@ -259,6 +271,9 @@ func Verify(signature *big.Int, rX *big.Int, apk *ecdsa.PublicKey, message []byt
 }
 
 func VerifyPartial(signature *big.Int, rX *big.Int, c *big.Int, a *big.Int, publicKey *ecdsa.PublicKey) bool {
+	if signature == nil || rX == nil || c == nil || a == nil || publicKey == nil {
+		return false
+	}
 	curve := publicKey.Curve
 	sGX, sGY := curve.ScalarBaseMult(signature.Bytes())
 	cYX, cYY := curve.ScalarMult(publicKey.X, publicKey.Y, a.Bytes())

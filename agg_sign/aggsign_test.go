@@ -64,8 +64,11 @@ func TestSign(t *testing.T) {
 		t.Error("parth1RTag not equal to party2RTag")
 	}
 
-	party1H0 := Hash0(party1RTag, keyAgg1.APK, message, isMuSig)
-	party2H0 := Hash0(party2RTag, keyAgg2.APK, message, isMuSig)
+	party1H0, err := Hash0(party1RTag, keyAgg1.APK, message, isMuSig)
+	party2H0, err := Hash0(party2RTag, keyAgg2.APK, message, isMuSig)
+	if err != nil {
+		t.Error("Hash0 fail")
+	}
 
 	if !(party1H0.Cmp(party2H0) == 0) {
 		t.Error("party1H0 not equal to party2H0")
@@ -96,4 +99,3 @@ func BenchmarkSign(b *testing.B) {
 func BenchmarkAddEphemeralPubKeys(b *testing.B) {
 
 }
-
