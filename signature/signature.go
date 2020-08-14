@@ -25,6 +25,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"errors"
+	agg "github.com/ontio/ontology-crypto/agg_sign"
 	"math/big"
 
 	"golang.org/x/crypto/ed25519"
@@ -109,6 +110,8 @@ func Sign(scheme SignatureScheme, pri crypto.PrivateKey, msg []byte, opt interfa
 				}
 				res.Value = &DSASignature{R: r, S: s, Curve: key.Curve}
 			}
+		} else if scheme == SHA3_256withAGGSIGN {
+			// TODO
 		} else {
 			err = errors.New("signing failed: unmatched signature scheme and private key")
 			return
@@ -159,6 +162,10 @@ func Verify(pub crypto.PublicKey, msg []byte, sig *Signature) bool {
 			if v, ok := sig.Value.(*SM2Signature); ok {
 				res = sm2.Verify(key.PublicKey, v.ID, msg, h, v.R, v.S)
 			}
+		case SHA3_256withAGGSIGN:
+			if v, ok := sig.Value.(*DSASignature); ok {
+				res = agg.Verify(v.S, v.R, key.PublicKey, msg, true)
+			}
 		}
 	case ed25519.PublicKey:
 		if sig.Scheme == SHA512withEDDSA {
@@ -200,7 +207,8 @@ func Serialize(sig *Signature) ([]byte, error) {
 			sig.Scheme != SHA3_256withECDSA &&
 			sig.Scheme != SHA3_384withECDSA &&
 			sig.Scheme != SHA3_512withECDSA &&
-			sig.Scheme != RIPEMD160withECDSA {
+			sig.Scheme != RIPEMD160withECDSA &&
+			sig.Scheme != SHA3_256withAGGSIGN {
 			return nil, errors.New("failed serializing signature: unmatched signature scheme and value")
 		}
 		buf.Write(serializeDSA(v))
@@ -249,7 +257,7 @@ func Deserialize(buf []byte) (*Signature, error) {
 	switch sig.Scheme {
 	case SHA224withECDSA, SHA256withECDSA, SHA384withECDSA, SHA512withECDSA,
 		SHA3_224withECDSA, SHA3_256withECDSA, SHA3_384withECDSA, SHA3_512withECDSA,
-		RIPEMD160withECDSA:
+		RIPEMD160withECDSA, SHA3_256withAGGSIGN:
 		if len(data) == 65 { // secp256k1 signature
 			sig.Value = data
 		} else {
@@ -312,4 +320,20 @@ func deserializeDSA(buf []byte) (*DSASignature, error) {
 		R: new(big.Int).SetBytes(buf[0 : length/2]),
 		S: new(big.Int).SetBytes(buf[length/2:]),
 	}, nil
+}
+
+func CreateAggSignature(r *big.Int, s *big.Int, curve elliptic.Curve) (*Signature, error) {
+	if r == nil || s == nil {
+		err := errors.New("illegal parameter")
+		return nil, err
+	}
+	sig := &Signature{
+		Scheme: SHA3_256withAGGSIGN,
+		Value: &DSASignature{
+			R:     r,
+			S:     s,
+			Curve: curve,
+		},
+	}
+	return sig, nil
 }
